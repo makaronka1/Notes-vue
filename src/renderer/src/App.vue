@@ -1,11 +1,15 @@
 <script setup>
 import Versions from './components/Versions.vue'
+import Navbar from './components/Navbar.vue'
+import Sidebar from './components/Sidebar.vue'
+import OpenFiles from './components/OpenFiles.vue'
+import MainPlace from './components/MainPlace.vue'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 </script>
 
 <template>
-  <img alt="logo" class="logo" src="./assets/electron.svg" />
+  <!-- <img alt="logo" class="logo" src="./assets/electron.svg" />
   <div class="creator">Powered by electron-vite</div>
   <div class="text">
     Build an Electron app with
@@ -20,5 +24,61 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
       <a target="_blank" rel="noreferrer" @click="ipcHandle">Send IPC</a>
     </div>
   </div>
-  <Versions />
+  <Versions /> -->
+  <div class="container">
+    <div class="side-bar-container">
+      <Navbar />
+      <Sidebar />
+    </div>
+    
+    <div class="main-place-container">
+      <OpenFiles />
+      <MainPlace />
+    </div>
+  </div>
 </template>
+
+<style>
+  .container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 2560px;
+    margin: 0px auto;
+    position: relative;
+    min-height: 100vh;
+    font-size: 18px;
+    overflow-x: hidden;
+  }
+
+  .side-bar-container {
+    width: 300px;
+    max-height: 1440px;
+    background-color: #e7e7e76e;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #d5d5d5;
+    flex-shrink: 0;
+  }
+
+  .icon {
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .main-place-container {
+    flex: 1;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 300px;
+    width: calc(100% - 300px);
+    gap: 15px;
+    overflow: hidden;
+  }
+</style>
+
