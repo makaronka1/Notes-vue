@@ -45,7 +45,6 @@ contextBridge.exposeInMainWorld('fileSystem', {
   stat: async (targetPath) => {
     const stats = await fs.stat(targetPath);
     return {
-      size: stats.size,
       isFile: stats.isFile(),
       isDirectory: stats.isDirectory(),
     };
