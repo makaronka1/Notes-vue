@@ -4,8 +4,43 @@ import Navbar from './components/Navbar.vue'
 import Sidebar from './components/Sidebar.vue'
 import OpenFiles from './components/OpenFiles.vue'
 import MainPlace from './components/MainPlace.vue'
+import { ref, reactive, onMounted } from 'vue'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
+
+import { createFileTree, pathToObject } from './composables/useFileTree.js';
+
+const targetPath = 'C:\\Users\\pavel\\Desktop\\electronnotes'
+
+const tree = ref(null)
+const isLoading = ref(true)
+const error = ref(null)
+
+async function initTree() {
+  try {
+    isLoading.value = true
+    error.value = null
+    
+    const plain = await pathToObject(targetPath)
+    
+    tree.value = reactive(plain)
+    window.debugTree = tree.value
+
+    await createFileTree(tree.value)
+    
+    console.log('Дерево построено:', tree.value)
+  } catch (err) {
+    console.error('Ошибка при построении дерева:', err)
+    error.value = err.message || 'Не удалось загрузить файлы'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  initTree()
+})
+
 </script>
 
 <template>
@@ -28,7 +63,11 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
   <div class="container">
     <div class="side-bar-container">
       <Navbar />
-      <Sidebar />
+      <Sidebar 
+        :tree="tree" 
+        :is-loading="isLoading" 
+        :error="error" 
+      />
     </div>
     
     <div class="main-place-container">
