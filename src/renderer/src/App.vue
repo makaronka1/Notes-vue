@@ -10,7 +10,8 @@ const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
 import { createFileTree, pathToObject } from './composables/useFileTree.js';
 
-const targetPath = 'C:\\Users\\pavel\\Desktop\\electronnotes'
+//const targetPath = 'C:\\Users\\pavel\\Desktop\\electronnotes'
+const targetPath = '/home/zmv/Рабочий стол/notest test/'
 
 const tree = ref(null)
 const isLoading = ref(true)
