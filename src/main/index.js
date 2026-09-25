@@ -2,6 +2,57 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { watch as fsWatch } from 'node:fs';
+const watchers = new Map();
+
+function closeWatchersFor(wcId) {
+  console.log('[closeWatchersFor] called for wcId =', wcId)
+  const map = watchers.get(wcId)
+  if (!map) {
+    console.log('[closeWatchersFor] no watchers for this wcId')
+    return
+  }
+  console.log('[closeWatchersFor] closing', map.size, 'watcher(s):', [...map.keys()])
+  for (const w of map.values()) {
+    try { w.close() } catch (e) { console.error('close error', e) }
+  }
+  watchers.delete(wcId)
+}
+
+ipcMain.handle('fs:watch', (event, dirPath) => {
+  const wcId = event.sender.id
+  if (!watchers.has(wcId)) watchers.set(wcId, new Map())
+  const userWatchers = watchers.get(wcId)
+
+  if (userWatchers.has(dirPath)) return
+
+  try {
+    const watcher = fsWatch(dirPath, { recursive: true }, (eventType, filename) => {
+      console.log('[fs:watch] change:', { dirPath, eventType, filename })
+      if (event.sender.isDestroyed()) return
+      event.sender.send('fs:changed', { dirPath, eventType, filename: filename?.toString() ?? null })
+    })
+
+    watcher.on('error', (err) => {
+      console.error('[fs:watch] error for', dirPath, err)
+    })
+
+    userWatchers.set(dirPath, watcher)
+  } catch (err) {
+    console.error('[fs:watch] failed to watch', dirPath, err)
+    throw err
+  }
+})
+
+ipcMain.handle('fs:unwatch', (event, dirPath) => {
+  const map = watchers.get(event.sender.id)
+  if (!map) return
+  const w = map.get(dirPath)
+  if (w) {
+    try { w.close() } catch {}
+    map.delete(dirPath)
+  }
+})
 
 function createWindow() {
   // Create the browser window.
@@ -18,6 +69,13 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     }
+  })
+
+  const wcId = mainWindow.webContents.id
+
+  mainWindow.on('closed', () => {
+    console.log('[window closed] wcId =', wcId)
+    closeWatchersFor(wcId)
   })
 
   mainWindow.webContents.openDevTools();
@@ -56,6 +114,13 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  app.on('web-contents-created', (_, contents) => {
+    contents.on('destroyed', () => {
+      console.log('[web-contents] destroyed id =', contents.id)
+      closeWatchersFor(contents.id)
+    })
+  })
 
   createWindow()
 

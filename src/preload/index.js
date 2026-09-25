@@ -1,10 +1,20 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
+const fileWatcher = {
+  watch: (p) => ipcRenderer.invoke('fs:watch', p),
+  unwatch: (p) => ipcRenderer.invoke('fs:unwatch', p),
+  onChanged: (cb) => {
+    const listener = (_, data) => cb(data)
+    ipcRenderer.on('fs:changed', listener)
+    return () => ipcRenderer.off('fs:changed', listener)
+  },
+}
+
 // Custom APIs for renderer
-const api = {}
+const api = {fileWatcher}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -13,12 +23,15 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
+    // если у тебя было window.fileSystem напрямую — добавь:
+    contextBridge.exposeInMainWorld('fileWatcher', fileWatcher)
   } catch (error) {
     console.error(error)
   }
 } else {
   window.electron = electronAPI
   window.api = api
+  window.fileWatcher = fileWatcher
 }
 
 contextBridge.exposeInMainWorld('path', {

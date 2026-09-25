@@ -4,7 +4,7 @@ import Navbar from './components/Navbar.vue'
 import Sidebar from './components/Sidebar.vue'
 import OpenFiles from './components/OpenFiles.vue'
 import MainPlace from './components/MainPlace.vue'
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
@@ -12,10 +12,16 @@ import { createFileTree, pathToObject } from './composables/useFileTree.js';
 
 //const targetPath = 'C:\\Users\\pavel\\Desktop\\electronnotes'
 const targetPath = '/home/zmv/Рабочий стол/notest test/'
-
+let offChanged = null
+let rebuildTimer = null
 const tree = ref(null)
 const isLoading = ref(true)
 const error = ref(null)
+
+function scheduleRebuild() {
+  clearTimeout(rebuildTimer)
+  rebuildTimer = setTimeout(() => initTree(), 50) // debounce
+}
 
 async function initTree() {
   try {
@@ -38,8 +44,21 @@ async function initTree() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   initTree()
+
+  await window.fileWatcher.watch(targetPath)
+  offChanged = window.fileWatcher.onChanged(({ dirPath }) => {
+    if (dirPath === targetPath || dirPath.startsWith(targetPath)) {
+      scheduleRebuild()
+    }
+  })
+})
+
+onUnmounted(async () => {
+  clearTimeout(rebuildTimer)
+  offChanged?.()
+  await window.fileWatcher.unwatch(targetPath)
 })
 
 </script>
