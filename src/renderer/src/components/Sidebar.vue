@@ -57,6 +57,13 @@ function onSelect(node) { selected.value = node }
     overflow-y: auto;
   }
 
+  .side-bar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+
   .tree-root { list-style: none; padding-left: 0; }
 
   .tree-node {
