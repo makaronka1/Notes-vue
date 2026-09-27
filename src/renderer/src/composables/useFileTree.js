@@ -24,16 +24,13 @@ export async function createFileTree (rootObject) {
   for (let child of rootObject.children) {
     child.parentPath = rootObject.path;
     const parsed = await window.path.parse(child.path);
+    child.clearName = parsed.name;
+    child.ext = parsed.ext;
 
     if (child.isFile) {
-      child.clearName = parsed.name;
-      child.ext = parsed.ext;
       child.children = [];
       continue;
     }
-    
-    child.clearName = parsed.name;
-    child.ext = parsed.ext;
 
     await createFileTree(child);
   }
