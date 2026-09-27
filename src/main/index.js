@@ -3,7 +3,23 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { watch as fsWatch } from 'node:fs';
+const { default: Store } = require('electron-store')
 const watchers = new Map();
+
+const store = new Store({
+  name: 'file-tree-state',
+  defaults: {
+    expandedPaths: []
+  }
+});
+
+ipcMain.handle('get-expanded-paths', () => {
+  return store.get('expandedPaths');
+});
+
+ipcMain.on('set-expanded-paths', (event, paths) => {
+  store.set('expandedPaths', paths);
+});
 
 function closeWatchersFor(wcId) {
   console.log('[closeWatchersFor] called for wcId =', wcId)

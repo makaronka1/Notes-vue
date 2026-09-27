@@ -74,3 +74,8 @@ contextBridge.exposeInMainWorld('fileSystem', {
     }));
   },
 });
+
+contextBridge.exposeInMainWorld('electronStoreAPI', {
+  getExpandedPaths: () => ipcRenderer.invoke('get-expanded-paths'),
+  saveExpandedPaths: (paths) => ipcRenderer.send('set-expanded-paths', paths)
+});

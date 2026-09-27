@@ -7,12 +7,13 @@ import arrowIcon from '../assets/arrow.svg'
 
 const props = defineProps({
   node: { type: Object, required: true },
-  defaultExpanded: { type: Boolean, default: false }
+  isExpanded: { type: Function, required: true },
+  onToggle:   { type: Function, required: true }
 })
 
 const emit = defineEmits(['select'])
 
-const expanded = ref(props.defaultExpanded)
+const expanded = computed(() => props.isExpanded(props.node.path))
 
 const hasChildren = computed(
   () =>
@@ -23,7 +24,7 @@ const hasChildren = computed(
 
 function handleClick() {
   emit('select', props.node)
-  if (props.node.isDirectory) expanded.value = !expanded.value
+  if (props.node.isDirectory) props.onToggle(props.node.path)
 }
 </script>
 
@@ -33,11 +34,8 @@ function handleClick() {
       :class="node.isDirectory ? 'directory-item' : 'file-item'"
       @click="handleClick"
     >
-      <div v-if="node.isDirectory" v-show="expanded" class="arrowContainer">
-        <img :src="arrowIcon" alt="arrowIcon" class="arrow">
-      </div>
-      <div v-if="node.isDirectory" v-show="!expanded" class="arrowContainer">
-        <img :src="arrowIcon" alt="arrowIcon" class="arrow closed">
+      <div v-if="node.isDirectory" class="arrowContainer">
+        <img :src="arrowIcon" :class="['arrow', { closed: !expanded }]">
       </div>
 
       <span class="icon" v-if="node.isFile"><img :src="fileIcon"></span>
@@ -55,6 +53,8 @@ function handleClick() {
         v-for="child in node.children"
         :key="child.path"
         :node="child"
+        :is-expanded="isExpanded"
+        :on-toggle="onToggle"
         @select="emit('select', $event)"
       />
     </ul>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch} from 'vue'
 import FileTreeNode from './FileTreeNode.vue'
 import arrowIcon from '../assets/arrow.svg'
 
@@ -9,10 +9,43 @@ defineProps({
   error: { type: String, default: null }
 })
 
-const rootExpanded = ref(true)
+const emit = defineEmits(['select'])
+const expandedPaths = ref(new Set())
+const isStateReady = ref(false)
 const selected = ref(null)
+const rootExpanded = ref(true)
 
-function onSelect(node) { selected.value = node }
+onMounted(async () => {
+  try {
+    if (window.electronStoreAPI) {
+      const saved = await window.electronStoreAPI.getExpandedPaths()
+      expandedPaths.value = new Set(Array.isArray(saved) ? saved : [])
+    }
+  } catch (e) {
+    console.warn('Не удалось загрузить состояние дерева:', e)
+  } finally {
+    isStateReady.value = true
+  }
+})
+
+watch(expandedPaths, (set) => {
+  window.electronStoreAPI?.saveExpandedPaths([...set])
+})
+
+function isExpanded(path) {
+  return expandedPaths.value.has(path)
+}
+
+function toggleExpanded(path) {
+  const next = new Set(expandedPaths.value)
+  next.has(path) ? next.delete(path) : next.add(path)
+  expandedPaths.value = next
+}
+
+function onSelect(node) {
+  selected.value = node
+  emit('select', node)
+}
 </script>
 
 <template>
@@ -41,6 +74,8 @@ function onSelect(node) { selected.value = node }
             v-for="child in tree.children"
             :key="child.path"
             :node="child"
+            :is-expanded="isExpanded"
+            :on-toggle="toggleExpanded"
             @select="onSelect"
           />
         </ul>
