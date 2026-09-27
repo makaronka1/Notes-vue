@@ -41,7 +41,7 @@ function handleClick() {
       </div>
 
       <span class="icon" v-if="node.isFile"><img :src="fileIcon"></span>
-      <span class="name">{{ node.name }}</span>
+      <span class="name">{{ node.clearName }}</span>
     </div>
 
     <ul

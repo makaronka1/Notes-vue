@@ -29,7 +29,7 @@ function onSelect(node) { selected.value = node }
           <div v-show="!rootExpanded" class="arrowContainer">
             <img :src="arrowIcon" alt="arrowIcon" class="arrow closed">
           </div>
-          <span class="name">{{ tree.name }}</span>
+          <span class="name">{{ tree.clearName }}</span>
         </div>
 
         <ul
