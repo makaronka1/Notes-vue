@@ -9,11 +9,11 @@ defineProps({
   error: { type: String, default: null }
 })
 
-const emit = defineEmits(['select'])
-const expandedPaths = ref(new Set())
-const isStateReady = ref(false)
-const selected = ref(null)
-const rootExpanded = ref(true)
+const emit = defineEmits(['select', 'contextmenu-node']);
+const expandedPaths = ref(new Set());
+const isStateReady = ref(false);
+const selected = ref(null);
+const rootExpanded = ref(true);
 
 onMounted(async () => {
   try {
@@ -55,7 +55,7 @@ function onSelect(node) {
 
     <ul v-else-if="tree" class="tree-root">
       <li class="tree-node root-tree-node">
-        <div class="directory-item" @click="rootExpanded = !rootExpanded">
+        <div class="directory-item" @click="rootExpanded = !rootExpanded" @contextmenu.prevent="emit('contextmenu-node', { event: $event, node: tree })">
           <div v-show="rootExpanded" class="arrowContainer">
             <img :src="arrowIcon" alt="arrowIcon" class="arrow">
           </div>
@@ -77,6 +77,7 @@ function onSelect(node) {
             :is-expanded="isExpanded"
             :on-toggle="toggleExpanded"
             @select="onSelect"
+            @contextmenu-node="emit('contextmenu-node', $event)"
           />
         </ul>
       </li>

@@ -11,7 +11,7 @@ const props = defineProps({
   onToggle:   { type: Function, required: true }
 })
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'contextmenu-node']);
 
 const expanded = computed(() => props.isExpanded(props.node.path))
 
@@ -26,6 +26,12 @@ function handleClick() {
   emit('select', props.node)
   if (props.node.isDirectory) props.onToggle(props.node.path)
 }
+
+function handleContextMenu(e) {
+  e.preventDefault()                                       // ← глушим системное меню
+  e.stopPropagation()
+  emit('contextmenu-node', { event: e, node: props.node })
+}
 </script>
 
 <template>
@@ -33,6 +39,7 @@ function handleClick() {
     <div
       :class="node.isDirectory ? 'directory-item' : 'file-item'"
       @click="handleClick"
+      @contextmenu="handleContextMenu"
     >
       <div v-if="node.isDirectory" class="arrowContainer">
         <img :src="arrowIcon" :class="['arrow', { closed: !expanded }]">
@@ -56,6 +63,7 @@ function handleClick() {
         :is-expanded="isExpanded"
         :on-toggle="onToggle"
         @select="emit('select', $event)"
+        @contextmenu-node="emit('contextmenu-node', $event)"
       />
     </ul>
   </li>
@@ -141,5 +149,6 @@ function handleClick() {
     font-size: 13px;
     user-select: none;
     white-space: nowrap;
+    border-left: 1px solid #c7c7c7;
   }
 </style>

@@ -4,14 +4,16 @@ import Navbar from './components/Navbar.vue'
 import Sidebar from './components/Sidebar.vue'
 import OpenFiles from './components/OpenFiles.vue'
 import MainPlace from './components/MainPlace.vue'
+import ContextMenu from './components/ContextMenu.vue'
+import { useContextMenu } from './composables/useContextMenu.js'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 
 const ipcHandle = () => window.electron.ipcRenderer.send('ping')
 
 import { createFileTree, pathToObject } from './composables/useFileTree.js';
 
-const targetPath = 'C:\\Users\\pavel\\Desktop\\electronnotes'
-//const targetPath = '/home/zmv/Рабочий стол/notest test/'
+//const targetPath = 'C:\\Users\\pavel\\Desktop\\electronnotes'
+const targetPath = '/home/zmv/Рабочий стол/notest test/'
 let offChanged = null
 let rebuildTimer = null
 const tree = ref(null)
@@ -61,6 +63,18 @@ onUnmounted(async () => {
   await window.fileWatcher.unwatch(targetPath)
 })
 
+
+const { ctx, open: openContextMenu, close: closeContextMenu } = useContextMenu();
+
+async function handleContextAction({ id, node }) {
+  switch (id) {
+    case 'open':       /* ... */ break
+    case 'new-file':   break
+    case 'new-folder':  break
+    case 'rename':  /* ... */ break
+    case 'delete': break
+  }
+}
 </script>
 
 <template>
@@ -86,7 +100,8 @@ onUnmounted(async () => {
       <Sidebar 
         :tree="tree" 
         :is-loading="isLoading" 
-        :error="error" 
+        :error="error"
+        @contextmenu-node="openContextMenu"
       />
     </div>
     
@@ -94,6 +109,14 @@ onUnmounted(async () => {
       <OpenFiles />
       <MainPlace />
     </div>
+    <ContextMenu
+      :is-open="ctx.isOpen"
+      :x="ctx.x"
+      :y="ctx.y"
+      :node="ctx.node"
+      @close="closeContextMenu"
+      @action="handleContextAction"
+    />
   </div>
 </template>
 
