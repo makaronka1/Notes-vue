@@ -52,7 +52,7 @@ contextBridge.exposeInMainWorld('fileSystem', {
   readFileAsBase64: (filePath) => fs.readFile(filePath, 'base64'),
   saveFile: (filePath, content) => fs.writeFile(filePath, content, 'utf-8'),
   renameObject: (oldPath, newPath) => fs.rename(oldPath, newPath),
-  deleteElement: (targetPath) => fs.unlink(targetPath),
+  deleteElement: (path) => ipcRenderer.invoke('delete-element', path),
   saveImage: (arrayBuffer, fileName) => fs.writeFile(fileName, Buffer.from(arrayBuffer)),
   access: (targetPath, mode) => fs.access(targetPath, mode),
   stat: async (targetPath) => {

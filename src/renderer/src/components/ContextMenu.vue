@@ -10,7 +10,11 @@ const props = defineProps({
 const emit = defineEmits(['close', 'action'])
 
 function onKey(e) { if (e.key === 'Escape') emit('close') }
-function onAnyClick() { emit('close') }
+function onAnyClick(e) {
+  const menu = document.querySelector('.context-menu')
+  if (menu && menu.contains(e.target)) return
+  emit('close')
+}
 
 onMounted(() => {
   // capture:true — чтобы клик по любому месту страницы закрывал меню,

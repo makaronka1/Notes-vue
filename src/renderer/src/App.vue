@@ -72,7 +72,7 @@ async function handleContextAction({ id, node }) {
     case 'new-file':   break
     case 'new-folder':  break
     case 'rename':  /* ... */ break
-    case 'delete': break
+    case 'delete': await window.fileSystem.deleteElement(node.path);
   }
 }
 </script>
