@@ -69,10 +69,16 @@ const { ctx, open: openContextMenu, close: closeContextMenu } = useContextMenu()
 async function handleContextAction({ id, node }) {
   switch (id) {
     case 'open':       /* ... */ break
-    case 'new-file':   break
-    case 'new-folder': 
-      const path = window.path.join(node.path, 'новая папка');
-      await window.fileSystem.createDirectory(path);
+    case 'new-file': {
+      const filePath = window.path.join(node.path, 'новый файл');
+      await window.fileSystem.createFile(filePath, '.md');
+      break;
+    }
+    case 'new-folder': {
+      const folderPath = window.path.join(node.path, 'новая папка');
+      await window.fileSystem.createDirectory(folderPath);
+      break;
+    }
     case 'rename':  /* ... */ break
     case 'delete': await window.fileSystem.deleteElement(node.path);
   }

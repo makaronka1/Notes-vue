@@ -54,6 +54,7 @@ contextBridge.exposeInMainWorld('fileSystem', {
   renameObject: (oldPath, newPath) => fs.rename(oldPath, newPath),
   deleteElement: (path) => ipcRenderer.invoke('delete-element', path),
   createDirectory: (path) => ipcRenderer.invoke('create-directory', path),
+  createFile: (filePath, fileExtension) => ipcRenderer.invoke('create-file', filePath, fileExtension),
   saveImage: (arrayBuffer, fileName) => fs.writeFile(fileName, Buffer.from(arrayBuffer)),
   access: (targetPath, mode) => fs.access(targetPath, mode),
   stat: async (targetPath) => {

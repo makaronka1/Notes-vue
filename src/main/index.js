@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { watch as fsWatch } from 'node:fs';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const { default: Store } = require('electron-store')
 const watchers = new Map();
@@ -202,6 +203,45 @@ ipcMain.handle('create-directory', async (event, dirPath) => {
     }
   } catch (error) {
     console.error('Ошибка создания директории:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Создание файла
+ipcMain.handle('create-file', async (event, filePath, fileExtension) => {
+  try {
+    try {
+      await fs.access(filePath + fileExtension);
+      // Файл существует → генерируем новое имя
+      const fileName = path.basename(filePath);
+      const parentDir = path.dirname(filePath);
+      
+      let counter = 2;
+      let newFilePath = path.join(parentDir, `${fileName} (${counter})` + fileExtension);
+      
+      // Продолжаем увеличивать счётчик, пока не найдём свободное имя
+      while (true) {
+        try {
+          await fs.access(newFilePath);
+          counter++;
+          newFilePath = path.join(parentDir, `${fileName} (${counter})` + fileExtension);
+        } catch {
+          // Файла с таким именем нет — выходим из цикла
+          break;
+        }
+      }
+      
+      // Создаём файл с новым именем
+      await fs.writeFile(newFilePath, '');
+      return { success: true};
+      
+    } catch {
+      // Файла не существует — создаём с переданным именем
+      await fs.writeFile(filePath + fileExtension, '');
+      return { success: true };
+    }
+  } catch (error) {
+    console.error('Ошибка создания файла:', error);
     return { success: false, error: error.message };
   }
 });
