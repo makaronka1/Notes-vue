@@ -3,6 +3,8 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { watch as fsWatch } from 'node:fs';
+import fs from 'node:fs/promises';
+
 const { default: Store } = require('electron-store')
 const watchers = new Map();
 
@@ -166,6 +168,40 @@ ipcMain.handle('delete-element', async (event, path) => {
     return { success: true };
   } catch (error) {
     console.error('Ошибка перемещения в корзину:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Создание директории
+ipcMain.handle('create-directory', async (event, dirPath) => {
+  try {
+    try {
+      await fs.access(dirPath);
+      const dirName = path.basename(dirPath);
+      const parentDir = path.dirname(dirPath);
+      
+      let counter = 2;
+      let newDirPath = path.join(parentDir, `${dirName} (${counter})`);
+      
+      while (true) {
+        try {
+          await fs.access(newDirPath);
+          counter++;
+          newDirPath = path.join(parentDir, `${dirName} (${counter})`);
+        } catch {
+          break;
+        }
+      }
+      
+      await fs.mkdir(newDirPath, { recursive: true });
+      return { success: true };
+      
+    } catch {
+      await fs.mkdir(dirPath, { recursive: true });
+      return { success: true};
+    }
+  } catch (error) {
+    console.error('Ошибка создания директории:', error);
     return { success: false, error: error.message };
   }
 });

@@ -70,7 +70,9 @@ async function handleContextAction({ id, node }) {
   switch (id) {
     case 'open':       /* ... */ break
     case 'new-file':   break
-    case 'new-folder':  break
+    case 'new-folder': 
+      const path = window.path.join(node.path, 'новая папка');
+      await window.fileSystem.createDirectory(path);
     case 'rename':  /* ... */ break
     case 'delete': await window.fileSystem.deleteElement(node.path);
   }
